@@ -126,7 +126,7 @@ object Examples extends SectionSupport {
   section("cache") {
     val ch = Channel[Int]()
     val chPart:  ReadPartialChannel[Int] = ch.cache
-    val chState: ReadStateChannel[Int]   = ch.cache(42)
+    val chState: ObsState[Int]   = ch.cache(42)
   }
 
   section("state") {

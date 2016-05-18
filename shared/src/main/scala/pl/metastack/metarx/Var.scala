@@ -3,7 +3,7 @@ package pl.metastack.metarx
 import java.util.concurrent.atomic.AtomicReference
 
 class Var[T](value: T)
-  extends StateChannel[T]
+  extends State[T]
   with ChannelDefaultSize[T]
   with reactive.mutate.PartialChannel[T]
 {
@@ -19,14 +19,14 @@ class Var[T](value: T)
   def get: T = v.get
 
   override def clear()(implicit ev: T <:< Option[_]): Unit =
-    asInstanceOf[StateChannel[Option[_]]].produce(None)
+    asInstanceOf[State[Option[_]]].produce(None)
 
   override def partialUpdate[U](f: PartialFunction[U, U])
                                (implicit ev: T <:< Option[U]): Unit =
     v.asInstanceOf[AtomicReference[Option[U]]]
      .get
      .foreach(value =>
-       asInstanceOf[StateChannel[Option[U]]]
+       asInstanceOf[State[Option[U]]]
          .produce(f.lift(value)))
 
   override def toString = s"Var($get)"
@@ -37,7 +37,7 @@ object Var {
 }
 
 /** Upon each subscription, emits `value`, which is evaluated lazily. */
-class LazyVar[T](value: => T) extends StateChannel[T] with ChannelDefaultSize[T] {
+class LazyVar[T](value: => T) extends State[T] with ChannelDefaultSize[T] {
   override def set(value: T): Unit = {}  // TODO Should not be declared
   override def get: T = value
   override def flush(f: T => Unit): Unit = f(value)
@@ -58,7 +58,7 @@ object LazyVar {
   * called.
   */
 class PtrVar[T](change: Obs[_], _get: => T, _set: T => Unit)
-  extends StateChannel[T] with ChannelDefaultSize[T]
+  extends State[T] with ChannelDefaultSize[T]
 {
   val sub = attach(set)
   change.attach(_ => produce())

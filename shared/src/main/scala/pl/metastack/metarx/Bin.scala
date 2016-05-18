@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicReference
   * for two-way binding.
   */
 class Bin[T](value: T)
-  extends StateChannel[T]
+  extends State[T]
   with ChannelDefaultSize[T]
 {
   private val v = new AtomicReference(value)

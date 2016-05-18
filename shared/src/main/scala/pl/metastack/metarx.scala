@@ -6,7 +6,7 @@ package object metarx
   with Operators {
 
   type Opt[T] = Var[Option[T]]
-  type ReadPartialChannel[T] = ReadStateChannel[Option[T]]
+  type ReadPartialChannel[T] = ObsState[Option[T]]
 
   implicit def FunctionToWriteChannel[T](f: T => Unit): WriteChannel[T] = {
     val ch = Channel[T]()

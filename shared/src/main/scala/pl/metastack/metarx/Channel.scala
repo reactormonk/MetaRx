@@ -364,17 +364,17 @@ trait RootChannel[T]
   }
 }
 
-trait ReadStateChannel[T] extends Obs[T] {
+trait ObsState[T] extends Obs[T] {
   def get: T
 }
 
-/** In Rx terms, a [[StateChannel]] can be considered a cold observable. */
-trait StateChannel[T] extends Channel[T] with ReadStateChannel[T] {
+/** In Rx terms, a [[State]] can be considered a cold observable. */
+trait State[T] extends Channel[T] with ObsState[T] {
   /** Sets and propagates value to children */
   def set(value: T): Unit
 
   /** @see [[set]] */
-  def :=(value: T) = set(value)
+  def :=(value: T): Unit = set(value)
 
   def update(f: T => T): Unit = set(f(get))
 

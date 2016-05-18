@@ -29,7 +29,7 @@ trait Obs[T]
     res
   }
 
-  def cache(default: T): ReadStateChannel[T] = {
+  def cache(default: T): ObsState[T] = {
     val res = Var[T](default)
     attach(res := _)
     res
