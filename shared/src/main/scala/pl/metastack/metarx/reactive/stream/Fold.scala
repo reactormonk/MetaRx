@@ -1,6 +1,6 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.ReadChannel
+import pl.metastack.metarx.Obs
 
 trait Fold[T] {
   /**
@@ -8,7 +8,7 @@ trait Fold[T] {
    *
    * After each call of `f`, the current value is produced on the channel
    */
-  def foldLeft[U](acc: U)(f: (U, T) => U): ReadChannel[U]
+  def foldLeft[U](acc: U)(f: (U, T) => U): Obs[U]
 
   // TODO Add biFold() that also deals with deletions
 
@@ -17,7 +17,7 @@ trait Fold[T] {
    *
    * @see [[foldLeft]]
    */
-  def sum[U >: T](implicit num: Numeric[U]): ReadChannel[U] =
+  def sum[U >: T](implicit num: Numeric[U]): Obs[U] =
     foldLeft(num.zero)(num.plus)
 
   /**
@@ -25,7 +25,7 @@ trait Fold[T] {
    *
    * @see [[foldLeft]]
    */
-  def product[U >: T](implicit num: Numeric[U]): ReadChannel[U] =
+  def product[U >: T](implicit num: Numeric[U]): Obs[U] =
     foldLeft(num.one)(num.times)
 
   /**
@@ -33,7 +33,7 @@ trait Fold[T] {
    *
    * @see [[foldLeft]]
    */
-  def min[U >: T](init: U)(implicit num: Numeric[U]): ReadChannel[U] =
+  def min[U >: T](init: U)(implicit num: Numeric[U]): Obs[U] =
     foldLeft(init)(num.min)
 
   /**
@@ -41,6 +41,6 @@ trait Fold[T] {
    *
    * @see [[foldLeft]]
    */
-  def max[U >: T](init: U)(implicit num: Numeric[U]): ReadChannel[U] =
+  def max[U >: T](init: U)(implicit num: Numeric[U]): Obs[U] =
     foldLeft(init)(num.max)
 }

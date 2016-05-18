@@ -1,6 +1,6 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.ReadChannel
+import pl.metastack.metarx.Obs
 
 trait Filter[Container[_] <: Size, A, B] {
   /** Only include elements for which `f` is true */
@@ -14,31 +14,30 @@ trait Filter[Container[_] <: Size, A, B] {
    *
    * @see [[any]]
    */
-  def all(value: B): ReadChannel[Boolean] = filterNot(_ == value).isEmpty
+  def all(value: B): Obs[Boolean] = filterNot(_ == value).isEmpty
 
   /**
    * At least one element is equal to `value`
    *
    * @see [[all]]
    */
-  def any(value: B): ReadChannel[Boolean] = filter(_ == value).nonEmpty
+  def any(value: B): Obs[Boolean] = filter(_ == value).nonEmpty
 
   /**
    * Checks for existence of a value for which `f` is true
    *
    * @note Buffers: false as long as no row exists where `f` is true, then true
    * @note Channels: false as long as `f` returns false, then true
-   *
    * @see [[forall]]
    */
-  def exists(f: B => Boolean): ReadChannel[Boolean] = filter(f).nonEmpty
+  def exists(f: B => Boolean): Obs[Boolean] = filter(f).nonEmpty
 
   /**
    * Checks whether `f` is true for all elements
    *
    * @see [[exists]]
    */
-  def forall(f: B => Boolean): ReadChannel[Boolean] = filterNot(f).isEmpty
+  def forall(f: B => Boolean): Obs[Boolean] = filterNot(f).isEmpty
 
   /**
    * Count number of occurrence of `value`.
@@ -46,7 +45,7 @@ trait Filter[Container[_] <: Size, A, B] {
    * @note Buffers: When the element is removed, the counter is decreased.
    * @note Channels: With every matching element, the counter is increased.
    */
-  def count(value: B): ReadChannel[Int] = filter(_ == value).size
+  def count(value: B): Obs[Int] = filter(_ == value).size
 
   /**
    * Stream contains at least one occurrence of `value`.
@@ -54,7 +53,7 @@ trait Filter[Container[_] <: Size, A, B] {
    * @note Buffers: When the item is removed, it will produce false.
    * @note Channels: Once true, will never produce any other value.
    */
-  def has(value: B): ReadChannel[Boolean] = filter(_ == value).nonEmpty
+  def has(value: B): Obs[Boolean] = filter(_ == value).nonEmpty
 
   /**
    * Partitions stream into two sub-stream

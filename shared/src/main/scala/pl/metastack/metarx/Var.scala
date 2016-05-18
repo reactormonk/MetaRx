@@ -57,7 +57,7 @@ object LazyVar {
   * If a value v is produced on the resulting channel instead, then set(v) is
   * called.
   */
-class PtrVar[T](change: ReadChannel[_], _get: => T, _set: T => Unit)
+class PtrVar[T](change: Obs[_], _get: => T, _set: T => Unit)
   extends StateChannel[T] with ChannelDefaultSize[T]
 {
   val sub = attach(set)
@@ -74,6 +74,6 @@ class PtrVar[T](change: ReadChannel[_], _get: => T, _set: T => Unit)
 }
 
 object PtrVar {
-  def apply[T](change: ReadChannel[_], get: => T, set: T => Unit) =
+  def apply[T](change: Obs[_], get: => T, set: T => Unit) =
     new PtrVar[T](change, get, set)
 }

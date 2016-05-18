@@ -1,6 +1,6 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.{ReadChannel, Opt}
+import pl.metastack.metarx.{Obs, Opt}
 
 trait Size {
   /**
@@ -11,17 +11,17 @@ trait Size {
    *                       changes. In [[Opt]] the size is reset if
    *                       the value is cleared.
    */
-  def size: ReadChannel[Int]
+  def size: Obs[Int]
 
   /**
    * @note Buffers: Produce a new value once a row is added or removed.
    * @note Channels: Produce false with the first received value.
    * @note Partial channels: Produce true if the current value is cleared.
    */
-  def isEmpty: ReadChannel[Boolean] = size.is(0)
+  def isEmpty: Obs[Boolean] = size.is(0)
 
   /**
    * Negation of [[isEmpty]]
    */
-  def nonEmpty: ReadChannel[Boolean] = size.isNot(0)
+  def nonEmpty: Obs[Boolean] = size.isNot(0)
 }

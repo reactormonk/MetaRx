@@ -1,10 +1,10 @@
 package pl.metastack.metarx
 
 class BufferSpec extends CompatTest {
-  def assertEqualsCh[T](ch: ReadChannel[T], ch2: ReadChannel[T]): Unit =
+  def assertEqualsCh[T](ch: Obs[T], ch2: Obs[T]): Unit =
     ChannelCompare(ch, ch2).tick()
 
-  def forallBuf[T](f: Buffer[Int] => (ReadChannel[T], ReadChannel[T])) {
+  def forallBuf[T](f: Buffer[Int] => (Obs[T], Obs[T])) {
     def emptyChannel() {
       val buffer = Buffer[Int]()
       val (lch, rch) = f(buffer)

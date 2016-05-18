@@ -26,7 +26,7 @@ object Dict {
 object DeltaDict {
   import Dict.Delta
 
-  def apply[A, B](delta: ReadChannel[Delta[A, B]]): DeltaDict[A, B] =
+  def apply[A, B](delta: Obs[Delta[A, B]]): DeltaDict[A, B] =
     new DeltaDict[A, B] {
       override val changes = delta
     }
@@ -39,7 +39,7 @@ trait DeltaDict[A, B]
   with reactive.stream.Key[A, B]
 {
   import Dict.Delta
-  val changes: ReadChannel[Delta[A, B]]
+  val changes: Obs[Delta[A, B]]
 
   def map[C](f: (A, B) => C): DeltaDict[A, C] =
     DeltaDict[A, C](changes.map {
@@ -57,7 +57,7 @@ trait DeltaDict[A, B]
       case Delta.Clear() => Delta.Clear()
     })
 
-  def size: ReadChannel[Int] = {
+  def size: Obs[Int] = {
     val count = Var(0)
 
     changes.attach {
@@ -196,7 +196,7 @@ trait PollDict[A, B]
 
   private[metarx] val mapping: mutable.Map[A, B]
 
-  val changes: ReadChannel[Delta[A, B]]
+  val changes: Obs[Delta[A, B]]
 
   def foreach(f: ((A, B)) => Unit) {
     mapping.foreach(f)

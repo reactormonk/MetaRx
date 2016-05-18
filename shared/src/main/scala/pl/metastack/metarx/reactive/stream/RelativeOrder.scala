@@ -1,23 +1,23 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.ReadChannel
+import pl.metastack.metarx.Obs
 
 trait RelativeOrder[T] {
   /**
    * @note Buffers: Current row before `value`
    * @note Channels: Value that is produced right before each `value`
    */
-  def before(value: T): ReadChannel[T]
+  def before(value: T): Obs[T]
 
   /**
    * @note Buffers: Current row after `value`
    * @note Channels: Value that is produced right after each `value`
    */
-  def after(value: T): ReadChannel[T]
+  def after(value: T): Obs[T]
 
   /** @see [[before]] */
-  def beforeOption(value: T): ReadChannel[T]
+  def beforeOption(value: T): Obs[T]
 
   /** @see [[after]] */
-  def afterOption(value: T): ReadChannel[T]
+  def afterOption(value: T): Obs[T]
 }

@@ -50,7 +50,7 @@ object Buffer {
     buf
   }
 
-  def from[T](chgs: ReadChannel[Delta[T]]): Buffer[T] = {
+  def from[T](chgs: Obs[Delta[T]]): Buffer[T] = {
     val buf = Buffer[T]()
     buf.changes << chgs
     buf
@@ -67,7 +67,7 @@ trait BufferImplicits {
   implicit def flatten[T](buf: ReadBuffer[ReadBuffer[T]]): ReadBuffer[T] = {
     /** TODO Find a more efficient implementation */
     val result = Buffer[T]()
-    val attached = mutable.HashMap.empty[ReadBuffer[T], ReadChannel[Unit]]
+    val attached = mutable.HashMap.empty[ReadBuffer[T], Obs[Unit]]
 
     def refresh() {
       result.clear()
@@ -98,7 +98,7 @@ object BufferImplicits extends BufferImplicits
 object DeltaBuffer {
   import Buffer.Delta
 
-  def apply[T](delta: ReadChannel[Delta[T]]): DeltaBuffer[T] =
+  def apply[T](delta: Obs[Delta[T]]): DeltaBuffer[T] =
     new DeltaBuffer[T] {
       override val changes = delta
     }
@@ -109,9 +109,9 @@ trait DeltaBuffer[T]
   with reactive.stream.Map[DeltaBuffer, T]
 {
   import Buffer.Delta
-  val changes: ReadChannel[Delta[T]]
+  val changes: Obs[Delta[T]]
 
-  def size: ReadChannel[Int] = {
+  def size: Obs[Int] = {
     val count = Var(0)
 
     changes.attach {
@@ -123,14 +123,14 @@ trait DeltaBuffer[T]
     count
   }
 
-  def takeUntil(ch: ReadChannel[_]): DeltaBuffer[T] =
+  def takeUntil(ch: Obs[_]): DeltaBuffer[T] =
     DeltaBuffer(changes.takeUntil(ch))
 
-  def insertions: ReadChannel[T] = changes.collect {
+  def insertions: Obs[T] = changes.collect {
     case Delta.Insert(_, element) => element
   }
 
-  def removals: ReadChannel[T] = changes.collect {
+  def removals: Obs[T] = changes.collect {
     case Delta.Remove(element) => element
   }
 
@@ -148,7 +148,7 @@ trait DeltaBuffer[T]
       value
     )
 
-    val chgs: ReadChannel[Delta[U]] = changes.map {
+    val chgs: Obs[Delta[U]] = changes.map {
       case Delta.Insert(position, element) =>
         val mapped = f(element)
         val res = Delta.Insert(position.map(cached), mapped)
@@ -170,7 +170,7 @@ trait DeltaBuffer[T]
 
   /** @note `f` must not be side-effecting */
   def mapPure[U](f: T => U): DeltaBuffer[U] = {
-    val chgs: ReadChannel[Delta[U]] = changes.map {
+    val chgs: Obs[Delta[U]] = changes.map {
       case Delta.Insert(position, element) =>
         Delta.Insert(position.map(f), f(element))
       case Delta.Replace(reference, element) =>
@@ -189,7 +189,7 @@ trait DeltaBuffer[T]
   }
 
   def mapTo[U](f: T => U): DeltaDict[T, U] = {
-    val delta: ReadChannel[Dict.Delta[T, U]] = changes.flatMapSeq {
+    val delta: Obs[Dict.Delta[T, U]] = changes.flatMapSeq {
       case Delta.Insert(position, element) =>
         Seq(Dict.Delta.Insert(element, f(element)))
       case Delta.Replace(reference, element) =>
@@ -261,7 +261,7 @@ trait PollBuffer[T]
   import Buffer.Delta
   import Buffer.Position
 
-  val changes: ReadChannel[Delta[T]]
+  val changes: Obs[Delta[T]]
 
   private[metarx] val elements: mutable.ListBuffer[T]
 
@@ -331,18 +331,18 @@ trait PollBuffer[T]
 
   def value(index: Int): T = elements(index)
   def indexOf(handle: T): Int = elements.indexOf(handle)
-  def toSeq: ReadChannel[Seq[T]] = changes.map(_ => elements)
+  def toSeq: Obs[Seq[T]] = changes.map(_ => elements)
 
-  def before(value: T): ReadChannel[T] =
+  def before(value: T): Obs[T] =
     changes.map(_ => before$(value)).distinct
 
-  def after(value: T): ReadChannel[T] =
+  def after(value: T): Obs[T] =
     changes.map(_ => after$(value)).distinct
 
-  def beforeOption(value: T): ReadChannel[T] =
+  def beforeOption(value: T): Obs[T] =
     changes.collect(Function.unlift(_ => beforeOption$(value)))
 
-  def afterOption(value: T): ReadChannel[T] =
+  def afterOption(value: T): Obs[T] =
     changes.collect(Function.unlift(_ => afterOption$(value)))
 
   def before$(value: T): T = {
@@ -384,7 +384,7 @@ trait PollBuffer[T]
     result
   }
 
-  def head: ReadChannel[T] = {
+  def head: Obs[T] = {
     val hd = Opt[T]()
 
     changes.attach {
@@ -403,7 +403,7 @@ trait PollBuffer[T]
     hd.values
   }
 
-  def last: ReadChannel[T] = {
+  def last: Obs[T] = {
     val lst = Opt[T]()
 
     changes.attach {
@@ -443,10 +443,10 @@ trait PollBuffer[T]
     result
   }
 
-  def isHead(element: T): ReadChannel[Boolean] =
+  def isHead(element: T): Obs[Boolean] =
     headOption.is(Some(element))
 
-  def isLast(element: T): ReadChannel[Boolean] =
+  def isLast(element: T): Obs[Boolean] =
     lastOption.is(Some(element))
 
   def distinct: ReadBuffer[T] = {
@@ -572,22 +572,22 @@ trait PollBuffer[T]
   }
   */
 
-  def foldLeft[U](acc: U)(f: (U, T) => U): ReadChannel[U] =
+  def foldLeft[U](acc: U)(f: (U, T) => U): Obs[U] =
     changes.map { _ =>
       get.foldLeft(acc)(f)
     }.distinct
 
-  def reduce[U >: T](op: (U, U) ⇒ U): ReadChannel[U] =
+  def reduce[U >: T](op: (U, U) ⇒ U): Obs[U] =
     changes.map { _ =>
       get.reduce(op)
     }.distinct
 
-  def mkString(sep: String): ReadChannel[String] = {
+  def mkString(sep: String): Obs[String] = {
     changes.map { _ =>
       get.mkString(sep)
     }.distinct
   }
-  def mkString(): ReadChannel[String] = mkString("")
+  def mkString(): Obs[String] = mkString("")
 
   /** Returns first matching row; if it gets deleted, returns next match. */
   def find(f: T => Boolean): ReadPartialChannel[T] = filter(f).buffer.headOption

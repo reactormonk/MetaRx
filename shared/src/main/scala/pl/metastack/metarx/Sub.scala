@@ -4,14 +4,14 @@ import java.util.concurrent.atomic.AtomicReference
 
 class Sub[T](init: T) extends Var[T](init) {
   private val subscription =
-    new AtomicReference(Option.empty[ReadChannel[Unit]])
+    new AtomicReference(Option.empty[Obs[Unit]])
 
-  def set(subscriber: ReadChannel[T]): Unit = {
+  def set(subscriber: Obs[T]): Unit = {
     val old = subscription.getAndSet(Some(subscriber.attach(super.set)))
     old.foreach(_.dispose())
   }
 
-  def :=(subscriber: ReadChannel[T]): Unit = set(subscriber)
+  def :=(subscriber: Obs[T]): Unit = set(subscriber)
 
   override def set(value: T): Unit = {
     val old = subscription.getAndSet(None)
@@ -24,8 +24,8 @@ class Sub[T](init: T) extends Var[T](init) {
     old.foreach(_.dispose())
   }
 
-  def dep[U](fwd: ReadChannel[T] => ReadChannel[U],
-             bwd: ReadChannel[U] => ReadChannel[T]): Dep[T, U] =
+  def dep[U](fwd: Obs[T] => Obs[U],
+             bwd: Obs[U] => Obs[T]): Dep[T, U] =
     new Dep(this, fwd, bwd)
 
   override def toString = s"Sub()"
@@ -35,7 +35,7 @@ class Sub[T](init: T) extends Var[T](init) {
 object Sub {
   def apply[T](init: T): Sub[T] = new Sub[T](init)
 
-  def apply[T](ch: ReadChannel[T]): Sub[T] = {
+  def apply[T](ch: Obs[T]): Sub[T] = {
     val subscriber = new Sub[T](null.asInstanceOf[T])
     subscriber := ch
     subscriber

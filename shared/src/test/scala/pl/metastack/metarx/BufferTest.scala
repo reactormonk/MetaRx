@@ -194,7 +194,7 @@ class BufferTest extends CompatTest {
 
   test("reduce") {
     val buffer = Buffer("a", "b", "c")
-    val reduced: ReadChannel[String] = buffer.reduce(_ + "," + _)
+    val reduced: Obs[String] = buffer.reduce(_ + "," + _)
 
     val results = mutable.ArrayBuffer.empty[String]
     reduced.attach(results += _)
@@ -204,7 +204,7 @@ class BufferTest extends CompatTest {
 
   test("mkString") {
     val buffer = Buffer("a", "b", "c")
-    val string: ReadChannel[String] = buffer.mkString(", ")
+    val string: Obs[String] = buffer.mkString(", ")
 
     val results = mutable.ArrayBuffer.empty[String]
     string.attach(results += _)
