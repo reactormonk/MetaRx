@@ -354,12 +354,16 @@ trait ChannelDefaultSize[T] {
     foldLeft(0) { case (acc, cur) => acc + 1 }
 }
 
-trait RootChannel[T]
-  extends Channel[T]
-  with ChannelDefaultSize[T]
-{
-  def dispose() {
+trait ChannelDefaultDispose[T] {
+  private[metarx] val children: Array[ChildChannel[T, _]]
+
+  def dispose(): Unit = {
     children.foreach(_.dispose())
     children.clear()
   }
 }
+
+trait RootChannel[T]
+  extends Channel[T]
+  with ChannelDefaultSize[T]
+  with ChannelDefaultDispose[T]
