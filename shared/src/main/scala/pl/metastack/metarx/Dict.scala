@@ -154,7 +154,7 @@ trait WriteDict[A, B]
 {
   import Dict.Delta
 
-  val changes: WriteChannel[Delta[A, B]]
+  val changes: Sink[Delta[A, B]]
 
   def insert(key: A, value: B) {
     changes ! Delta.Insert(key, value)

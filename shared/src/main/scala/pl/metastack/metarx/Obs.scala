@@ -37,8 +37,8 @@ trait Obs[T]
 
   def flush(f: T => Unit)
 
-  def publish(ch: WriteChannel[T]): Obs[Unit] = ch.subscribe(this)
-  def publish[U](ch: WriteChannel[T], ignore: Obs[U]): Obs[Unit] = ch.subscribe(this, ignore)
+  def publish(ch: Sink[T]): Obs[Unit] = ch.subscribe(this)
+  def publish[U](ch: Sink[T], ignore: Obs[U]): Obs[Unit] = ch.subscribe(this, ignore)
 
   def or(ch: Obs[_]): Obs[Unit] = {
     val that = this
@@ -305,7 +305,7 @@ trait Obs[T]
       else Result.Done()
     }
 
-  def writeTo(write: WriteChannel[T]): Channel[T] = {
+  def writeTo(write: Sink[T]): Channel[T] = {
     val res = Channel[T]()
     val ignore = write.subscribe(res)
     res.subscribe(this, ignore)

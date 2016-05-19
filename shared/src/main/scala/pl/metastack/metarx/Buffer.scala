@@ -620,7 +620,7 @@ trait WriteBuffer[T]
   import Buffer.Delta
   import Buffer.Position
 
-  val changes: WriteChannel[Delta[T]]
+  val changes: Sink[Delta[T]]
 
   def prepend(element: T) {
     changes ! Delta.Insert(Position.Head(), element)

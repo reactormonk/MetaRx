@@ -8,7 +8,7 @@ package object metarx
   type Opt[T] = Var[Option[T]]
   type ReadPartialChannel[T] = ObsState[Option[T]]
 
-  implicit def FunctionToWriteChannel[T](f: T => Unit): WriteChannel[T] = {
+  implicit def FunctionToWriteChannel[T](f: T => Unit): Sink[T] = {
     val ch = Channel[T]()
     ch.attach(f)
     ch

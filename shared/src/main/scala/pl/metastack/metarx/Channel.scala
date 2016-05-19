@@ -18,7 +18,7 @@ object Channel {
   }
 
   /** Combine a read with a write channel. */
-  def apply[T](read: Obs[T], write: WriteChannel[T]): Channel[T] = {
+  def apply[T](read: Obs[T], write: Sink[T]): Channel[T] = {
     val res = new RootChannel[T] {
       def flush(f: T => Unit) { read.flush(f) }
     }
@@ -44,7 +44,7 @@ object Result {
   case class Done[T](values: T*) extends Result[T]
 }
 
-trait WriteChannel[T]
+trait Sink[T]
   extends reactive.propagate.Produce[T]
   with reactive.propagate.Subscribe[T]
 {
@@ -91,7 +91,7 @@ trait WriteChannel[T]
 
 trait Channel[T]
   extends Obs[T]
-  with WriteChannel[T]
+  with Sink[T]
   with reactive.propagate.Bind[T]
 {
   def dispose(): Unit
@@ -258,7 +258,7 @@ case class UniChildChannel[T, U](parent: Obs[T],
 }
 
 /** Bi-directional child */
-case class BiChildChannel[T, U](parent: WriteChannel[T],
+case class BiChildChannel[T, U](parent: Sink[T],
                                 fwd: Channel.Observer[T, U],
                                 bwd: Channel.Observer[U, T])
   extends ChildChannel[T, U]
