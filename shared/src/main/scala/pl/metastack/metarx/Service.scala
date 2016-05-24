@@ -3,6 +3,14 @@ package pl.metastack.metarx
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
 
+/**
+  * A Service is an abstraction for a small processing unit that takes a request
+  * and responds asynchronously. The communication is therefore entirely
+  * message-driven. The messages are epxected to be immutable. A service can
+  * have an internal state that will not be exposed. Services can be composed
+  * and requests may be forwarded to other services. The concept is inspired by
+  * Akka's actors.
+  */
 trait Service[Req, Resp] extends reactive.propagate.Produce[Req] {
   val process: PartialFunction[Req, Future[Resp]]
 
