@@ -67,4 +67,22 @@ class ServiceSpec extends AsyncFunSuite {
       assert(r == ResponseA(1) && r2 == ResponseB())
     }
   }
+
+  test("Forwarding requests") {
+    val service = Service[Request, Response] {
+      case r: RequestA => Future(ResponseA())
+    }
+
+    val service2 = Service[Request, Response] {
+      case RequestB() => Future(ResponseB())
+      case r => service ? r
+    }
+
+    for {
+      r <- service2 ? RequestA()
+      r2 <- service2 ? RequestB()
+    } yield {
+      assert(r == ResponseA() && r2 == ResponseB())
+    }
+  }
 }
