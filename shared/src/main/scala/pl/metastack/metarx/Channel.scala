@@ -11,14 +11,14 @@ object Channel {
     }
 
   def from[T](future: Future[T])
-             (implicit exec: ExecutionContext): Obs[T] = {
+             (implicit exec: ExecutionContext): ReadChannel[T] = {
     val ch = Channel[T]()
     future.foreach(ch.produce)
     ch
   }
 
   /** Combine a read with a write channel. */
-  def apply[T](read: Obs[T], write: Sink[T]): Channel[T] = {
+  def apply[T](read: ReadChannel[T], write: WriteChannel[T]): Channel[T] = {
     val res = new RootChannel[T] {
       def flush(f: T => Unit) { read.flush(f) }
     }
@@ -30,7 +30,7 @@ object Channel {
 
 trait ChannelImplicits {
   implicit def FutureToObs[T](future: Future[T])
-                             (implicit exec: ExecutionContext): Obs[T] = Channel.from(future)
+                             (implicit exec: ExecutionContext): ReadChannel[T] = Channel.from(future)
 }
 
 object ChannelImplicits extends ChannelImplicits
@@ -45,8 +45,8 @@ object Result {
 }
 
 trait Channel[T]
-  extends Obs[T]
-  with Sink[T]
+  extends ReadChannel[T]
+  with WriteChannel[T]
   with reactive.propagate.Bind[T]
 {
   def dispose(): Unit
@@ -81,14 +81,14 @@ trait Channel[T]
 
   /** Two-way binding; synchronises `this` and `other`. */
   def bind(other: Channel[T]) {
-    var obsOther: Obs[Unit] = null
+    var obsOther: ReadChannel[Unit] = null
     val obsThis = silentAttach(other.produce(_, obsOther))
     obsOther = other.attach(produce(_, obsThis))
     flush(obsThis.asInstanceOf[UniChildChannel[Any, Any]].process)
   }
 
-  def bind(other: Channel[T], ignoreOther: Obs[Unit]) {
-    var obsOther: Obs[Unit] = null
+  def bind(other: Channel[T], ignoreOther: ReadChannel[Unit]) {
+    var obsOther: ReadChannel[Unit] = null
     val obsThis = silentAttach(other.produce(_, obsOther, ignoreOther))
     obsOther = other.attach(produce(_, obsThis))
     flush(obsThis.asInstanceOf[UniChildChannel[Any, Any]].process)
@@ -114,14 +114,14 @@ trait ChildChannel[T, U]
   def process(value: T)
 }
 
-case class FlatChildChannel[T, U](parent: Obs[T],
-                                  observer: Channel.Observer[T, Obs[U]])
+case class FlatChildChannel[T, U](parent: ReadChannel[T],
+                                  observer: Channel.Observer[T, ReadChannel[U]])
   extends ChildChannel[T, U]
 {
-  private var bound: Obs[U] = null
-  private var subscr: Obs[Unit] = null
+  private var bound: ReadChannel[U] = null
+  private var subscr: ReadChannel[Unit] = null
 
-  def onChannel(ch: Obs[U]) {
+  def onChannel(ch: ReadChannel[U]) {
     if (subscr != null) subscr.dispose()
     bound = ch
     subscr = bound.attach(this ! _)
@@ -163,7 +163,7 @@ case class FlatChildChannel[T, U](parent: Obs[T],
 }
 
 /** Uni-directional child */
-case class UniChildChannel[T, U](parent: Obs[T],
+case class UniChildChannel[T, U](parent: ReadChannel[T],
                                  observer: Channel.Observer[T, U],
                                  onFlush: Option[() => Option[U]],
                                  doFilterCycles: Boolean = false)
@@ -213,7 +213,7 @@ case class UniChildChannel[T, U](parent: Obs[T],
 }
 
 /** Bi-directional child */
-case class BiChildChannel[T, U](parent: Sink[T],
+case class BiChildChannel[T, U](parent: WriteChannel[T],
                                 fwd: Channel.Observer[T, U],
                                 bwd: Channel.Observer[U, T])
   extends ChildChannel[T, U]
@@ -255,12 +255,12 @@ case class BiChildChannel[T, U](parent: Sink[T],
   override def toString = "BiChildChannel()"
 }
 
-case class BiFlatChildChannel[T, U](parent: Obs[T],
+case class BiFlatChildChannel[T, U](parent: ReadChannel[T],
                                     observer: Channel.Observer[T, Channel[U]])
   extends ChildChannel[T, U]
 {
   private var bound: Channel[U] = null
-  private var subscr: Obs[Unit] = null
+  private var subscr: ReadChannel[Unit] = null
 
   val back = silentAttach { value =>
     if (bound != null && subscr != null) bound.produce(value, subscr)
@@ -303,9 +303,9 @@ case class BiFlatChildChannel[T, U](parent: Obs[T],
 }
 
 trait ChannelDefaultSize[T] {
-  this: Obs[T] =>
+  this: ReadChannel[T] =>
 
-  def size: Obs[Int] =
+  def size: ReadChannel[Int] =
     foldLeft(0) { case (acc, cur) => acc + 1 }
 }
 

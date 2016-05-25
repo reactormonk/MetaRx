@@ -3,7 +3,7 @@ package pl.metastack.metarx
 import scala.collection.mutable
 
 /** Checks whether two channels behave in the same way. */
-case class ChannelCompare[T](ch: Obs[T], ch2: Obs[T]) {
+case class ChannelCompare[T](ch: ReadChannel[T], ch2: ReadChannel[T]) {
   val left = mutable.ArrayBuffer[T]()
   val right = mutable.ArrayBuffer[T]()
 
@@ -16,10 +16,10 @@ case class ChannelCompare[T](ch: Obs[T], ch2: Obs[T]) {
 }
 
 class ChannelSpec extends CompatTest {
-  def assertEqualsCh[T](ch: Obs[T], ch2: Obs[T]): Unit =
+  def assertEqualsCh[T](ch: ReadChannel[T], ch2: ReadChannel[T]): Unit =
     ChannelCompare(ch, ch2).tick()
 
-  def forallChVal[T](f: (Channel[Int], Int) => (Obs[T], Obs[T])) {
+  def forallChVal[T](f: (Channel[Int], Int) => (ReadChannel[T], ReadChannel[T])) {
     /* Different channel types may differ in their semantics. */
     val channels = Seq(
       () => Var[Int](0)
@@ -50,7 +50,7 @@ class ChannelSpec extends CompatTest {
     }
   }
 
-  def forallCh[T](f: Channel[Int] => (Obs[T], Obs[T])): Unit = {
+  def forallCh[T](f: Channel[Int] => (ReadChannel[T], ReadChannel[T])): Unit = {
     /* Check whether law holds for no values produced. */
     val ch = Channel[Int]()
     val (lch, rch) = f(ch)

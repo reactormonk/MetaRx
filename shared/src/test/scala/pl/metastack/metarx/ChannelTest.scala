@@ -736,7 +736,7 @@ class ChannelTest extends CompatTest {
     }
   }
 
-  test("Logical tests for Obs[Boolean]") {
+  test("Logical tests for ReadChanne[Boolean]") {
     import pl.metastack.metarx._
 
     val ch1 = Var[Boolean](true)
@@ -783,7 +783,7 @@ class ChannelTest extends CompatTest {
     assert(count == 1)
   }
 
-  test("Logical operators for Obs[Boolean]") {
+  test("Logical operators for ReadChannel[Boolean]") {
     import pl.metastack.metarx._
 
     val ch1 = Var(false)

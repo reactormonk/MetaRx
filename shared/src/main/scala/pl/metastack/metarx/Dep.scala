@@ -2,14 +2,14 @@ package pl.metastack.metarx
 
 /** @see [[Sub.dep()]] */
 class Dep[T, U] private[metarx](sub: Sub[T],
-                                fwd: Obs[T] => Obs[U],
-                                bwd: Obs[U] => Obs[T])
+                                fwd: ReadChannel[T] => ReadChannel[U],
+                                bwd: ReadChannel[U] => ReadChannel[T])
   extends Sub[U](null.asInstanceOf[U]) {
   sub.attach { s =>
     super.set(fwd(Var(s)))
   }
 
-  override def set(value: Obs[U]): Unit = {
+  override def set(value: ReadChannel[U]): Unit = {
     sub := bwd(value)
     super.set(value)
   }

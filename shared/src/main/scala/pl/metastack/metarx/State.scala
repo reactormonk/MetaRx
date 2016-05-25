@@ -1,13 +1,13 @@
 package pl.metastack.metarx
 
-trait ObsState[T] extends Obs[T] {
+trait ReadChannelState[T] extends ReadChannel[T] {
   def get: T
 }
 
 /** In Rx terms, a [[State]] can be considered a cold observable. */
 trait State[T]
   extends Channel[T]
-  with ObsState[T]
+  with ReadChannelState[T]
   with ChannelDefaultDispose[T] {
 
   /** Sets and propagates value to children */

@@ -1,6 +1,6 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.Obs
+import pl.metastack.metarx.ReadChannel
 
 trait Head[T] {
   /**
@@ -10,10 +10,10 @@ trait Head[T] {
    * has observers at this point is irrelevant as the value is cached (i.e.
    * attaching repeatedly will always lead the same value)
    */
-  def head: Obs[T]
+  def head: ReadChannel[T]
 
   /**
    * Checks whether the given element is the first produced value
    */
-  def isHead(element: T): Obs[Boolean]
+  def isHead(element: T): ReadChannel[Boolean]
 }

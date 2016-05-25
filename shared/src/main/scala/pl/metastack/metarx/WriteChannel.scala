@@ -1,6 +1,6 @@
 package pl.metastack.metarx
 
-trait Sink[T]
+trait WriteChannel[T]
   extends reactive.propagate.Produce[T]
   with reactive.propagate.Subscribe[T]
 {
@@ -15,7 +15,7 @@ trait Sink[T]
   def produce(value: T): Unit =
     children.foreach(_.process(value))
 
-  def produce[U](value: T, ignore: Obs[U]*) {
+  def produce[U](value: T, ignore: ReadChannel[U]*) {
     assume(ignore.forall(cur => children.contains(cur.asInstanceOf[ChildChannel[T, _]])))
     children.foreach { child =>
       if (!ignore.contains(child)) child.process(value)
@@ -26,7 +26,7 @@ trait Sink[T]
     value.foreach(produce)
   }
 
-  def flatProduce[U](value: Option[T], ignore: Obs[U]*) {
+  def flatProduce[U](value: Option[T], ignore: ReadChannel[U]*) {
     value.foreach(v => produce(v, ignore: _*))
   }
 
@@ -39,8 +39,8 @@ trait Sink[T]
   }
 
   /** Redirect stream from `other` to `this`. */
-  def subscribe(ch: Obs[T]): Obs[Unit] = ch.attach(produce)
+  def subscribe(ch: ReadChannel[T]): ReadChannel[Unit] = ch.attach(produce)
 
-  def subscribe[U](ch: Obs[T], ignore: Obs[U]): Obs[Unit] =
+  def subscribe[U](ch: ReadChannel[T], ignore: ReadChannel[U]): ReadChannel[Unit] =
     ch.attach(produce(_, ignore))
 }

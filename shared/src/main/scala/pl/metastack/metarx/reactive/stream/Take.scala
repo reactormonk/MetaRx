@@ -1,6 +1,6 @@
 package pl.metastack.metarx.reactive.stream
 
-import pl.metastack.metarx.Obs
+import pl.metastack.metarx.ReadChannel
 
 trait Take[Container[_], T] {
   /**
@@ -21,5 +21,5 @@ trait Take[Container[_], T] {
   def drop(count: Int): Container[T]
 
   /** Take all elements until `ch` produces any value */
-  def takeUntil(ch: Obs[_]): Container[T]
+  def takeUntil(ch: ReadChannel[_]): Container[T]
 }

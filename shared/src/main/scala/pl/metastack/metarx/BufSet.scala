@@ -31,7 +31,7 @@ object BufSet {
 object DeltaBufSet {
   import BufSet.Delta
 
-  def apply[T](delta: Obs[Delta[T]]): DeltaBufSet[T] =
+  def apply[T](delta: ReadChannel[Delta[T]]): DeltaBufSet[T] =
     new DeltaBufSet[T] {
       override val changes = delta
     }
@@ -43,9 +43,9 @@ trait DeltaBufSet[T]
   with reactive.stream.Filter[DeltaBufSet, T, T]
 {
   import BufSet.Delta
-  val changes: Obs[Delta[T]]
+  val changes: ReadChannel[Delta[T]]
 
-  def size: Obs[Int] = {
+  def size: ReadChannel[Int] = {
     val count = Var(0)
 
     changes.attach {
@@ -150,7 +150,7 @@ trait PollBufSet[T]
 
   private[metarx] val elements: mutable.HashSet[T]
 
-  val changes: Obs[Delta[T]]
+  val changes: ReadChannel[Delta[T]]
 
   def get: Set[T] = elements.toSet
 
@@ -165,7 +165,7 @@ trait PollBufSet[T]
   @deprecated("Use `get`", "v0.1.5")
   def toSet$: Set[T] = elements.toSet
 
-  def toSeq: Obs[Seq[T]] = changes.map(_ => elements.toSeq)
+  def toSeq: ReadChannel[Seq[T]] = changes.map(_ => elements.toSeq)
 }
 
 trait ReadBufSet[T]

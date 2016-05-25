@@ -24,16 +24,16 @@ object Examples extends SectionSupport {
     val b: Var[Int] = Var(10)
 
     // Produces when user provided `m` and `b`
-    val mAndB: Obs[(Int, Int)] = m.zip(b)
+    val mAndB: ReadChannel[(Int, Int)] = m.zip(b)
 
     // Function channel to calculate `y` for current input
-    val y: Obs[Int => Int] =
+    val y: ReadChannel[Int => Int] =
       mAndB.map { case (m, b) =>
         (x: Int) => m * x + b
       }
 
     // Render `y` for inputs [-5, 5]
-    val values: Obs[Seq[Int]] = y.map((-5 to 5).map(_))
+    val values: ReadChannel[Seq[Int]] = y.map((-5 to 5).map(_))
     values.attach(println)
 
     // Simulate change of `m` in UI
@@ -60,7 +60,7 @@ object Examples extends SectionSupport {
     val b = Channel[String]()
     val c = Channel[String]()
 
-    val merged: Obs[String] = a.merge(b).merge(c)
+    val merged: ReadChannel[String] = a.merge(b).merge(c)
     merged.attach(println)
 
     c ! "test"
@@ -71,7 +71,7 @@ object Examples extends SectionSupport {
     val b = Channel[String]()
     val c = Channel[String]()
 
-    val or: Obs[Unit] = a | b | c
+    val or: ReadChannel[Unit] = a | b | c
     or.attach(println)
 
     b ! "test"
@@ -82,10 +82,10 @@ object Examples extends SectionSupport {
     val b = Channel[Boolean]()
 
     // a.zip(b).map { case (aVal, bVal) => aVal && bVal }
-    val aAndB: Obs[Boolean] = a && b
+    val aAndB: ReadChannel[Boolean] = a && b
 
     // a.zip(b).map { case (aVal, bVal) => aVal || bVal }
-    val aOrB: Obs[Boolean] = a || b
+    val aOrB: ReadChannel[Boolean] = a || b
 
     // a.isFalse()
     val notA = !a
@@ -95,8 +95,8 @@ object Examples extends SectionSupport {
     val a = Channel[Int]()
     val b = Channel[Int]()
 
-    val c: Obs[Int] = 5 - 2 * a + 3 / b
-    val d: Obs[Boolean] = c >= 42
+    val c: ReadChannel[Int] = 5 - 2 * a + 3 / b
+    val d: ReadChannel[Boolean] = c >= 42
   }
 
   section("state-channel") {
@@ -126,7 +126,7 @@ object Examples extends SectionSupport {
   section("cache") {
     val ch = Channel[Int]()
     val chPart:  ReadPartialChannel[Int] = ch.cache
-    val chState: ObsState[Int]   = ch.cache(42)
+    val chState: ReadChannelState[Int]   = ch.cache(42)
   }
 
   section("state") {

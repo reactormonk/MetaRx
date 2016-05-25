@@ -1,8 +1,8 @@
 package pl.metastack.metarx.reactive.propagate
 
-import pl.metastack.metarx.{Obs, Sink}
+import pl.metastack.metarx.{ReadChannel, WriteChannel}
 
 trait Publish[T] {
-  def publish(ch: Sink[T]): Obs[Unit]
-  def >>(ch: Sink[T]) = publish(ch)
+  def publish(ch: WriteChannel[T]): ReadChannel[Unit]
+  def >>(ch: WriteChannel[T]) = publish(ch)
 }
