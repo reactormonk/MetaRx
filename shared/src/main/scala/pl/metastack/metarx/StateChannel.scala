@@ -4,8 +4,8 @@ trait ReadChannelState[T] extends ReadChannel[T] {
   def get: T
 }
 
-/** In Rx terms, a [[State]] can be considered a cold observable. */
-trait State[T]
+/** In Rx terms, a [[StateChannel]] can be considered a cold observable. */
+trait StateChannel[T]
   extends Channel[T]
   with ReadChannelState[T]
   with ChannelDefaultDispose[T] {

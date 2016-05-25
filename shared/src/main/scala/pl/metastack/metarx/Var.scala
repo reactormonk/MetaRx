@@ -3,7 +3,7 @@ package pl.metastack.metarx
 import java.util.concurrent.atomic.AtomicReference
 
 class Var[T](value: T)
-  extends State[T]
+  extends StateChannel[T]
   with ChannelDefaultSize[T]
   with reactive.mutate.PartialChannel[T]
 {
@@ -19,14 +19,14 @@ class Var[T](value: T)
   def get: T = v.get
 
   override def clear()(implicit ev: T <:< Option[_]): Unit =
-    asInstanceOf[State[Option[_]]].produce(None)
+    asInstanceOf[StateChannel[Option[_]]].produce(None)
 
   override def partialUpdate[U](f: PartialFunction[U, U])
                                (implicit ev: T <:< Option[U]): Unit =
     v.asInstanceOf[AtomicReference[Option[U]]]
      .get
      .foreach(value =>
-       asInstanceOf[State[Option[U]]]
+       asInstanceOf[StateChannel[Option[U]]]
          .produce(f.lift(value)))
 
   override def toString = s"Var($get)"
@@ -62,7 +62,7 @@ object LazyVar {
   * called.
   */
 class PtrVar[T](change: ReadChannel[_], _get: => T, _set: T => Unit)
-  extends State[T] with ChannelDefaultSize[T]
+  extends StateChannel[T] with ChannelDefaultSize[T]
 {
   val sub = attach(set)
   change.attach(_ => produce())
