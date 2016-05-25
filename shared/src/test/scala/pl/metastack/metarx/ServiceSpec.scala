@@ -18,9 +18,9 @@ class ServiceSpec extends AsyncFunSuite {
     val service = Service[Request, Response] {
       case _: RequestA =>
         triggered = true
-        Future(ResponseA())
+        Future.successful(ResponseA())
 
-      case RequestB() => Future(ResponseB())
+      case RequestB() => Future.successful(ResponseB())
     }
 
     service ! RequestA()
@@ -29,8 +29,8 @@ class ServiceSpec extends AsyncFunSuite {
 
   test("Sending request to service") {
     val service = Service[Request, Response] {
-      case _: RequestA => Future(ResponseA())
-      case RequestB() => Future(ResponseB())
+      case _: RequestA => Future.successful(ResponseA())
+      case RequestB() => Future.successful(ResponseB())
     }
 
     val response = service ? RequestA()
@@ -39,11 +39,11 @@ class ServiceSpec extends AsyncFunSuite {
 
   test("Composing services") {
     val serviceA = Service[Request, Response] {
-      case _: RequestA => Future(ResponseA())
+      case _: RequestA => Future.successful(ResponseA())
     }
 
     val serviceB = Service[Request, Response] {
-      case RequestB() => Future(ResponseB())
+      case RequestB() => Future.successful(ResponseB())
     }
 
     val service = serviceA.compose(serviceB)
@@ -54,8 +54,8 @@ class ServiceSpec extends AsyncFunSuite {
 
   test("Mapping requests") {
     val service = Service[Request, Response] {
-      case r: RequestA => Future(ResponseA(r.i))
-      case RequestB() => Future(ResponseB())
+      case r: RequestA => Future.successful(ResponseA(r.i))
+      case RequestB() => Future.successful(ResponseB())
     }.map {
       case r: RequestA => RequestA(r.i + 1)
     }
@@ -70,11 +70,11 @@ class ServiceSpec extends AsyncFunSuite {
 
   test("Forwarding requests") {
     val service = Service[Request, Response] {
-      case r: RequestA => Future(ResponseA())
+      case r: RequestA => Future.successful(ResponseA())
     }
 
     val service2 = Service[Request, Response] {
-      case RequestB() => Future(ResponseB())
+      case RequestB() => Future.successful(ResponseB())
       case r => service ? r
     }
 
